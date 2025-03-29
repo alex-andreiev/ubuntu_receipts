@@ -45,9 +45,13 @@ echo "Configuring qBittorrent settings..."
 CONFIG_DIR="/mnt/ntfs/movies/.config/qBittorrent"
 sudo mkdir -p "$CONFIG_DIR"
 sudo chown -R qbittorrent:qbittorrent "$CONFIG_DIR"
+
 sudo -u qbittorrent bash -c "cat > $CONFIG_DIR/qBittorrent.conf <<EOF
 [Preferences]
 WebUI\Port=9091
+WebUI\Host=0.0.0.0
+WebUI\Username=admin
+WebUI\Password_ha1=adminadmin
 EOF"
 
 echo "Verifying configuration directory ownership..."
