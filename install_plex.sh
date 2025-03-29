@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# This script installs Plex Media Server on an Ubuntu system.
+# It performs the following steps:
+# 1. Installs required dependencies (curl, wget).
+# 2. Downloads the specified version of Plex Media Server.
+# 3. Installs Plex Media Server and enables it as a system service.
+# 4. Configures the firewall to allow Plex traffic.
+# 5. Creates a default media folder for Plex.
+
+# Usage:
+# Make the script executable: chmod +x install_plex.sh
+# Run the script with sudo: sudo ./install_plex.sh
+
 # Stop execution on error
 set -e
 
