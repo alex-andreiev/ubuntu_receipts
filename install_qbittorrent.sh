@@ -43,12 +43,15 @@ sudo pkill -f qbittorrent-nox
 
 echo "Configuring qBittorrent settings..."
 CONFIG_DIR="/mnt/ntfs/movies/.config/qBittorrent"
-sudo -u qbittorrent mkdir -p "$CONFIG_DIR"
-sudo bash -c "cat > $CONFIG_DIR/qBittorrent.conf <<EOF
+sudo mkdir -p "$CONFIG_DIR"
+sudo chown -R qbittorrent:qbittorrent "$CONFIG_DIR"
+sudo -u qbittorrent bash -c "cat > $CONFIG_DIR/qBittorrent.conf <<EOF
 [Preferences]
 WebUI\Port=9091
 EOF"
-sudo chown -R qbittorrent:qbittorrent "$CONFIG_DIR"
+
+echo "Verifying configuration directory ownership..."
+sudo chown -R qbittorrent:qbittorrent /mnt/ntfs/movies/.config
 
 echo "Creating systemd service..."
 sudo bash -c 'cat > /etc/systemd/system/qbittorrent.service <<EOF
@@ -59,7 +62,7 @@ After=network.target
 [Service]
 User=qbittorrent
 Group=qbittorrent
-ExecStart=/usr/bin/qbittorrent-nox --profile=/mnt/ntfs/movies
+ExecStart=/usr/bin/qbittorrent-nox --profile=/mnt/ntfs/movies/.config
 Restart=always
 RestartSec=5
 
@@ -73,5 +76,5 @@ sudo systemctl enable qbittorrent
 sudo systemctl start qbittorrent
 
 echo "qBittorrent installed and configured successfully!"
-echo "Access the Web UI at: http://<YOUR_SERVER_IP>:9091"
+echo "📌 Open Web UI in your browser: http://$(hostname -I | awk '{print $1}'):9091"
 echo "Default login: admin | Password: adminadmin"
