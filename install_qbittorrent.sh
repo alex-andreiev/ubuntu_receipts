@@ -46,16 +46,22 @@ CONFIG_DIR="/mnt/ntfs/movies/.config/qBittorrent"
 sudo mkdir -p "$CONFIG_DIR"
 sudo chown -R qbittorrent:qbittorrent "$CONFIG_DIR"
 
-sudo -u qbittorrent bash -c "cat > $CONFIG_DIR/config/qBittorrent.conf <<EOF
+# Исправленный путь к конфигурационному файлу
+CONFIG_FILE="$CONFIG_DIR/qBittorrent.conf"
+sudo -u qbittorrent bash -c "cat > $CONFIG_FILE <<EOF
+[LegalNotice]
+Accepted=true
+
 [Preferences]
-WebUI\Port=9091
-WebUI\Host=0.0.0.0
-WebUI\Username=admin
-WebUI\Password_ha1=adminadmin
+Downloads\\SavePath=/mnt/ntfs/movies/
+WebUI\\Port=9091
+WebUI\\Address=0.0.0.0
+WebUI\\Username=admin
+WebUI\\Password_ha1=@ByteArray(adminadmin)
 EOF"
 
 echo "Verifying configuration directory ownership..."
-sudo chown -R qbittorrent:qbittorrent /mnt/ntfs/movies/.config/qBittorrent
+sudo chown -R qbittorrent:qbittorrent "$CONFIG_DIR"
 
 echo "Creating systemd service..."
 sudo bash -c 'cat > /etc/systemd/system/qbittorrent.service <<EOF
@@ -66,7 +72,7 @@ After=network.target
 [Service]
 User=qbittorrent
 Group=qbittorrent
-ExecStart=/usr/bin/qbittorrent-nox --profile=/mnt/ntfs/movies/.config/qBittorrent
+ExecStart=/usr/bin/qbittorrent-nox --profile=/mnt/ntfs/movies/.config
 Restart=always
 RestartSec=5
 
