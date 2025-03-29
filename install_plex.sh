@@ -3,8 +3,8 @@
 # Stop execution on error
 set -e
 
-echo "🔹 Updating package lists..."
-sudo apt update && sudo apt upgrade -y
+#echo "🔹 Updating package lists..."
+#sudo apt update && sudo apt upgrade -y
 
 echo "🔹 Installing dependencies..."
 sudo apt install curl wget -y
