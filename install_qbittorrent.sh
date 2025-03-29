@@ -20,7 +20,6 @@
 # Make the script executable: chmod +x install_qbittorrent.sh
 # Run the script with sudo: sudo ./install_qbittorrent.sh
 # ---------------------------------------------------------------
-
 set -e
 
 echo "Updating system and installing qBittorrent-nox..."
@@ -37,31 +36,33 @@ echo "Setting correct permissions for /mnt/ntfs/movies..."
 sudo chown -R qbittorrent:qbittorrent /mnt/ntfs/movies
 sudo chmod -R 775 /mnt/ntfs/movies
 
-echo "Starting qBittorrent for initial setup..."
-sudo -u qbittorrent qbittorrent-nox & sleep 10
-sudo pkill -f qbittorrent-nox
-
 echo "Configuring qBittorrent settings..."
 CONFIG_DIR="/mnt/ntfs/movies/.config/qBittorrent"
 sudo mkdir -p "$CONFIG_DIR"
-sudo chown -R qbittorrent:qbittorrent "$CONFIG_DIR"
+sudo chown qbittorrent:qbittorrent "$CONFIG_DIR"
+sudo chmod 775 "$CONFIG_DIR"
 
-# Исправленный путь к конфигурационному файлу
 CONFIG_FILE="$CONFIG_DIR/qBittorrent.conf"
-sudo -u qbittorrent bash -c "cat > $CONFIG_FILE <<EOF
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Creating configuration file..."
+    sudo -u qbittorrent bash -c "cat > $CONFIG_FILE <<EOF
 [LegalNotice]
 Accepted=true
 
 [Preferences]
 Downloads\\SavePath=/mnt/ntfs/movies/
 WebUI\\Port=9091
-WebUI\\Address=0.0.0.0
-WebUI\\Username=admin
-WebUI\\Password_ha1=@ByteArray(adminadmin)
+WebUI\\Address=*
+
+[WebUI]
+Port=9091
+Address=*
 EOF"
+fi
 
 echo "Verifying configuration directory ownership..."
 sudo chown -R qbittorrent:qbittorrent "$CONFIG_DIR"
+sudo chmod -R 775 "$CONFIG_DIR"
 
 echo "Creating systemd service..."
 sudo bash -c 'cat > /etc/systemd/system/qbittorrent.service <<EOF
@@ -72,7 +73,7 @@ After=network.target
 [Service]
 User=qbittorrent
 Group=qbittorrent
-ExecStart=/usr/bin/qbittorrent-nox --profile=/mnt/ntfs/movies/.config
+ExecStart=/usr/bin/qbittorrent-nox --profile=/mnt/ntfs/movies/.config --webui-port=9091
 Restart=always
 RestartSec=5
 
@@ -83,8 +84,19 @@ EOF'
 echo "Reloading systemd and enabling service..."
 sudo systemctl daemon-reload
 sudo systemctl enable qbittorrent
-sudo systemctl start qbittorrent
+sudo systemctl restart qbittorrent
+
+echo "Verifying port..."
+sleep 5  # Даём время на запуск
+if sudo netstat -tuln | grep -q ":9091"; then
+    echo "Success: qBittorrent is running on port 9091"
+else
+    echo "Warning: qBittorrent is not running on port 9091"
+    echo "Checking current port..."
+    sudo netstat -tuln | grep qbittorrent || echo "qBittorrent not running"
+fi
 
 echo "qBittorrent installed and configured successfully!"
 echo "📌 Open Web UI in your browser: http://$(hostname -I | awk '{print $1}'):9091"
 echo "Default login: admin | Password: adminadmin"
+echo "Config file location: $CONFIG_FILE"
