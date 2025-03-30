@@ -20,6 +20,7 @@
 # Make the script executable: chmod +x install_qbittorrent.sh
 # Run the script with sudo: sudo ./install_qbittorrent.sh
 # ---------------------------------------------------------------
+
 set -e
 
 echo "Updating system and installing qBittorrent-nox..."
@@ -44,7 +45,7 @@ sudo chmod 775 "$CONFIG_DIR"
 
 CONFIG_FILE="$CONFIG_DIR/qBittorrent.conf"
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Creating configuration file..."
+    echo "Creating configuration file with minimal settings..."
     sudo -u qbittorrent bash -c "cat > $CONFIG_FILE <<EOF
 [LegalNotice]
 Accepted=true
@@ -55,8 +56,9 @@ WebUI\\Port=9091
 WebUI\\Address=*
 
 [WebUI]
-Port=9091
 Address=*
+Port=9091
+Username=admin
 EOF"
 fi
 
@@ -96,7 +98,21 @@ else
     sudo netstat -tuln | grep qbittorrent || echo "qBittorrent not running"
 fi
 
+echo "Retrieving generated password..."
+# Проверяем логи systemd для получения сгенерированного пароля
+PASSWORD=$(sudo journalctl -u qbittorrent --since "5 minutes ago" | grep "WebUI will be available" -A 1 | grep "Password" | awk '{print $NF}' | tail -n 1)
+if [ -n "$PASSWORD" ]; then
+    echo "Generated password: $PASSWORD"
+else
+    echo "Could not find generated password in logs. Check manually with:"
+    echo "sudo journalctl -u qbittorrent"
+fi
+
 echo "qBittorrent installed and configured successfully!"
 echo "📌 Open Web UI in your browser: http://$(hostname -I | awk '{print $1}'):9091"
-echo "Default login: admin | Password: adminadmin"
+echo "Default login: admin"
 echo "Config file location: $CONFIG_FILE"
+echo "To reset configuration if needed:"
+echo "sudo systemctl stop qbittorrent"
+echo "sudo rm $CONFIG_FILE"
+echo "sudo systemctl start qbittorrent"
