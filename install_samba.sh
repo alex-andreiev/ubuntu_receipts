@@ -1,25 +1,23 @@
 #!/bin/bash
 
-# Samba Server Installer & Configurator for Ubuntu
+# Samba Server Installer & Configurator for Ubuntu (Guest Access)
 # ---------------------------------------------------------------
-# This script installs Samba, configures a share for /mnt/ntfs,
-# and sets up access with a user 'qbittorrent'.
+# This script installs Samba and configures a share for /mnt/ntfs
+# with guest access (no login or password required).
 #
 # Features:
 # - Installs Samba server
 # - Configures /mnt/ntfs as a shared directory named 'media'
-# - Uses existing 'qbittorrent' user for access
-# - Sets up read/write access with authentication
+# - Allows guest access (read/write) without authentication
 #
 # Access the share from another device:
 # - Windows: \\<YOUR_SERVER_IP>\media
 # - Linux: smb://<YOUR_SERVER_IP>/media
-# - Default user: qbittorrent
-# - You will set the password during script execution
+# - No username or password required
 #
 # Usage:
-# Make the script executable: chmod +x install_samba.sh
-# Run the script with sudo: sudo ./install_samba.sh
+# Make the script executable: chmod +x install_samba_guest.sh
+# Run the script with sudo: sudo ./install_samba_guest.sh
 # ---------------------------------------------------------------
 
 set -e
@@ -35,12 +33,7 @@ else
     echo "User 'qbittorrent' already exists. Proceeding..."
 fi
 
-echo "Setting Samba password for qbittorrent user..."
-echo "Please enter a password for Samba access (you'll need this to connect):"
-sudo smbpasswd -a qbittorrent
-sudo smbpasswd -e qbittorrent  # Enable the Samba user
-
-echo "Configuring Samba share for /mnt/ntfs as 'media'..."
+echo "Configuring Samba share for /mnt/ntfs as 'media' with guest access..."
 sudo bash -c 'cat > /etc/samba/smb.conf <<EOF
 [global]
    workgroup = WORKGROUP
@@ -55,7 +48,7 @@ sudo bash -c 'cat > /etc/samba/smb.conf <<EOF
    browseable = yes
    read only = no
    writable = yes
-   valid users = qbittorrent
+   guest ok = yes
    create mask = 0775
    directory mask = 0775
    force user = qbittorrent
@@ -84,6 +77,4 @@ fi
 echo "Samba installed and configured successfully!"
 echo "📌 Share name: media"
 echo "📌 Access path: \\\\$(hostname -I | awk '{print $1}')\\media (Windows) or smb://$(hostname -I | awk '{print $1}')/media (Linux)"
-echo "📌 Username: qbittorrent"
-echo "📌 Password: <the password you set>"
-echo "📌 If you need to change the password later, use: sudo smbpasswd qbittorrent"
+echo "📌 No login or password required (guest access enabled)"
