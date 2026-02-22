@@ -58,7 +58,7 @@ echo "==> Listening ports (32400/${QBIT_WEBUI_PORT})"
 ss -ltnp | awk -v p=":${QBIT_WEBUI_PORT}" 'NR==1 || /:32400/ || index($0,p)' || true
 
 LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-PLEX_LOCAL_URL="http://localhost:32400/web/index.html#!/"
+PLEX_LOCAL_URL="http://127.0.0.1:32400/web/index.html#!/"
 QBIT_LOCAL_URL="http://localhost:${QBIT_WEBUI_PORT}/"
 
 echo
